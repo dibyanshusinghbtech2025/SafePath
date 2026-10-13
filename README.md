@@ -4,7 +4,7 @@
 
 Built for the **Seva Innovation Challenge 2026** (Maharashtra Zone), Problem Statement 258. Team DIBZ (solo): Dibyanshu Singh.
 
-**Live demo:** https://peaceful-kleicha-fb8039.netlify.app
+**Live demo:** [https://peaceful-kleicha-fb8039.netlify.app](https://peaceful-kleicha-fb8039safepath-dibz.netlify.app)
 
 > **Prototype status:** proof of concept. The demo runs on sample data for an imaginary area, not real streets. It has not yet been tested with real users.
 
