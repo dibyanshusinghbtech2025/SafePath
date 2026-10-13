@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SafePath: safer night routes for women</title>
+<style>
+:root{--bg:#f2f4fa;--card:#fff;--tx:#14213d;--mu:#56607a;--bd:#d9deec;--g:#1f9d5c;--a:#d98a0b;--r:#d63c5a;--lamp:#ffd166;--ac:#3b4fb8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1430;--card:#18214a;--tx:#eef1fb;--mu:#a7b1d3;--bd:#2c3768;--g:#3ccf84;--a:#f2a93a;--r:#ff6b88;--ac:#9fb0ff}}
+:root[data-theme="dark"]{--bg:#0d1430;--card:#18214a;--tx:#eef1fb;--mu:#a7b1d3;--bd:#2c3768;--g:#3ccf84;--a:#f2a93a;--r:#ff6b88;--ac:#9fb0ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Segoe UI","Nirmala UI",system-ui,sans-serif}
+header{max-width:1000px;margin:0 auto;padding:20px 16px 8px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+h1{font:700 2rem/1.1 Cambria,Georgia,serif;margin:0}
+.tag{margin:6px 0 0;color:var(--mu);max-width:46ch}
+.lang button{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:6px 12px;font:inherit;cursor:pointer}
+.lang button:first-child{border-radius:8px 0 0 8px}.lang button:last-child{border-radius:0 8px 8px 0}
+.lang button[aria-pressed=true]{background:var(--ac);color:#fff;border-color:var(--ac)}
+main{max-width:1000px;margin:0 auto;padding:8px 16px 28px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
+@media(max-width:780px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.map{background:#0f1830;border-color:#25305a;padding:8px}
+svg{width:100%;height:auto;display:block}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.row label{flex:1 1 130px;font-size:.9rem;color:var(--mu)}
+select{width:100%;margin-top:4px;padding:9px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit}
+.rc{display:block;width:100%;text-align:left;margin-bottom:10px;padding:12px;border-radius:12px;border:2px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+.rc[aria-pressed=true]{border-color:var(--ac)}
+.rc .h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{width:14px;height:14px;border-radius:50%}
+.sw{margin-left:auto;font-weight:700}
+.rc ul{margin:8px 0 0;padding-left:18px;color:var(--mu);font-size:.92rem}
+.rep{margin-top:16px}
+.rep h2,.card h2{font:700 1.05rem/1.3 Cambria,Georgia,serif;margin:0 0 6px}
+.rep p{margin:0 0 10px;color:var(--mu);font-size:.92rem}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns button{padding:9px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;cursor:pointer}
+.btns button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.note,footer{color:var(--mu);font-size:.88rem}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 24px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>SafePath</h1>
+    <p class="tag" id="tag"></p>
+  </div>
+  <div class="lang" role="group" aria-label="Language">
+    <button data-l="en" aria-pressed="true">English</button><button data-l="hi" aria-pressed="false">हिन्दी</button><button data-l="mr" aria-pressed="false">मराठी</button>
+  </div>
+</header>
+<main>
+  <section>
+    <div class="card map"><svg id="map" viewBox="0 0 560 380" role="img" aria-label="Night map with sample streets"></svg></div>
+    <div class="card rep">
+      <h2 id="rt"></h2>
+      <p id="rs"></p>
+      <div class="btns">
+        <button id="b1"></button><button id="b2"></button><button id="b3"></button><button id="b4"></button>
+      </div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="row">
+      <label><span id="lf"></span><select id="from"></select></label>
+      <label><span id="lt"></span><select id="to"></select></label>
+    </div>
+    <div id="routes" aria-live="polite"></div>
+    <p class="note" id="demo"></p>
+  </section>
+</main>
+<footer>Team DIBZ · Seva Innovation Challenge 2026 · Problem Statement 258</footer>
+<script>
+const L={
+en:{tag:"Compare walking routes after dark by lighting and people around, before you leave.",from:"From",to:"To",shortest:"Shortest",balanced:"Balanced",safest:"Safest",safe:"Safe",ok:"Moderate",risky:"Risky",lit:"Lit street",places:"Open places nearby",unlit:"Longest unlit stretch",rep:"Reports on this route",min:"min",same:"Pick two different places.",rt:"Report a street",hint:"Tap a street on the map to select it.",sel:"Street selected.",nol:"Light not working",iso:"Feels isolated",clr:"Clear reports",rst:"Reset all",demo:"This demo uses sample data for an imaginary area, not real streets. Reports are kept only in this page.",pl:["College gate","Bus stand","Hospital","Market","Railway station","Temple road"]},
+hi:{tag:"निकलने से पहले रात में पैदल रास्तों की रोशनी और आस-पास लोगों के आधार पर तुलना करें।",from:"कहाँ से",to:"कहाँ तक",shortest:"सबसे छोटा",balanced:"संतुलित",safest:"सबसे सुरक्षित",safe:"सुरक्षित",ok:"सामान्य",risky:"जोखिम भरा",lit:"रोशनी वाली सड़क",places:"आस-पास खुली जगहें",unlit:"सबसे लंबा अंधेरा हिस्सा",rep:"इस रास्ते पर रिपोर्ट",min:"मिनट",same:"दो अलग जगहें चुनें।",rt:"सड़क की रिपोर्ट करें",hint:"नक्शे पर किसी सड़क पर टैप करें।",sel:"सड़क चुनी गई।",nol:"लाइट बंद है",iso:"सुनसान लगता है",clr:"रिपोर्ट हटाएं",rst:"सब रीसेट करें",demo:"यह डेमो काल्पनिक इलाके के नमूना डेटा पर है, असली सड़कों पर नहीं। रिपोर्ट सिर्फ इसी पेज में रहती हैं।",pl:["कॉलेज गेट","बस स्टैंड","अस्पताल","बाज़ार","रेलवे स्टेशन","मंदिर रोड"]},
+mr:{tag:"निघण्यापूर्वी रात्री चालण्याच्या रस्त्यांची प्रकाश आणि आजूबाजूच्या लोकांनुसार तुलना करा.",from:"कुठून",to:"कुठे",shortest:"सर्वात लहान",balanced:"संतुलित",safest:"सर्वात सुरक्षित",safe:"सुरक्षित",ok:"ठीक",risky:"धोकादायक",lit:"प्रकाशित रस्ता",places:"जवळची उघडी ठिकाणे",unlit:"सर्वात लांब अंधारा भाग",rep:"या मार्गावरील रिपोर्ट",min:"मिनिटे",same:"दोन वेगळी ठिकाणे निवडा.",rt:"रस्त्याचा रिपोर्ट करा",hint:"नकाशावर रस्त्यावर टॅप करा.",sel:"रस्ता निवडला.",nol:"दिवा बंद आहे",iso:"निर्जन वाटते",clr:"रिपोर्ट काढा",rst:"सर्व रीसेट करा",demo:"हा डेमो काल्पनिक भागाच्या नमुना डेटावर आहे, खऱ्या रस्त्यांवर नाही. रिपोर्ट फक्त याच पानावर राहतात.",pl:["कॉलेज गेट","बस स्टँड","रुग्णालय","बाजार","रेल्वे स्टेशन","मंदिर रोड"]}};
+let lang='en',routes=[],sel='safest',se=null;
+const t=k=>L[lang][k],$=id=>document.getElementById(id);
+const C=6,R=5,N=C*R,X=n=>60+(n%C)*88,Y=n=>50+Math.floor(n/C)*72,nid=(c,r)=>r*C+c;
+const E=[];
+function mk(a,b,len,d,c,r){let lit=true,sh=0;
+ if(d=='h'){if(r==2&&c>=1&&c<=3){lit=false}else if(r==0||r==4)sh=2;else sh=(c+r)%2}
+ else{if((c==2||c==3)&&r>=1&&r<=2){lit=false}else if(c==0||c==C-1)sh=2;else sh=(c*r)%2}
+ E.push({id:E.length,a,b,len,d,lit,lit0:lit,sh,rep:0})}
+for(let r=0;r<R;r++)for(let c=0;c<C;c++){if(c<C-1)mk(nid(c,r),nid(c+1,r),160,'h',c,r);if(r<R-1)mk(nid(c,r),nid(c,r+1),120,'v',c,r)}
+const adj=Array.from({length:N},()=>[]);E.forEach(e=>{adj[e.a].push(e);adj[e.b].push(e)});
+const LM=[nid(0,2),nid(5,2),nid(0,0),nid(5,4),nid(5,0),nid(0,4)];
+const es=e=>Math.max(0,Math.min(4,(e.lit?2:0)+(e.sh>=2?2:e.sh)-1.5*e.rep));
+function path(s,g,k){const d=Array(N).fill(1e9),pv=Array(N).fill(null),dn=[];d[s]=0;
+ for(;;){let u=-1;for(let i=0;i<N;i++)if(!dn[i]&&(u<0||d[i]<d[u]))u=i;if(u<0||d[u]>=1e9)break;dn[u]=1;if(u==g)break;
+  for(const e of adj[u]){const v=e.a==u?e.b:e.a,w=e.len*(1+k*(4-es(e)));if(d[u]+w<d[v]){d[v]=d[u]+w;pv[v]=[u,e]}}}
+ const o=[];for(let v=g;v!=s;v=pv[v][0])o.unshift(pv[v][1]);return o}
+function pts(p,s){let c=s;const o=[c];for(const e of p){c=e.a==c?e.b:e.a;o.push(c)}return o}
+function stats(p){let L=0,ls=0,sc=0,pl=0,run=0,mx=0,rp=0;
+ for(const e of p){L+=e.len;sc+=es(e)*e.len;if(e.lit){ls+=e.len;run=0}else{run+=e.len;mx=Math.max(mx,run)}pl+=e.sh;rp+=e.rep}
+ return{L,sc:sc/L,lit:Math.round(100*ls/L),pl,mx,rp}}
+const col=s=>s>=2.8?'g':s>=1.6?'a':'r',word=s=>s>=2.8?t('safe'):s>=1.6?t('ok'):t('risky');
+function calc(){const s=+$('from').value,g=+$('to').value;routes=[];
+ if(s!=g){[['shortest',0],['safest',.9],['balanced',.25]].forEach(([k,w])=>{const p=path(s,g,w),key=p.map(e=>e.id).join();if(!routes.some(r=>r.key==key))routes.push({k,p,key,s,st:stats(p)})});
+  routes.sort((a,b)=>a.st.L-b.st.L);if(!routes.some(r=>r.k==sel))sel=routes.some(r=>r.k=='safest')?'safest':routes[routes.length-1].k}
+ render()}
+function render(){
+ const sr=routes.find(r=>r.k==sel);
+ let m='';
+ E.forEach(e=>{const x1=X(e.a),y1=Y(e.a),x2=X(e.b),y2=Y(e.b);
+  m+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${e.lit?'#3d4f8c':'#1c2648'}" stroke-width="6" stroke-linecap="round" ${e.lit?'':'stroke-dasharray="1 9"'}/>`;
+  if(e.id==se)m+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9fb0ff" stroke-width="9" stroke-linecap="round" opacity=".55"/>`});
+ routes.forEach(r=>{if(r.k==sel)return;const q=pts(r.p,r.s).map(n=>X(n)+','+Y(n)).join(' ');m+=`<polyline points="${q}" fill="none" stroke="${{g:'#3ccf84',a:'#f2a93a',r:'#ff6b88'}[col(r.st.sc)]}" stroke-width="3" stroke-dasharray="7 6" opacity=".7"/>`});
+ if(sr){const q=pts(sr.p,sr.s).map(n=>X(n)+','+Y(n)).join(' ');m+=`<polyline points="${q}" fill="none" stroke="${{g:'#3ccf84',a:'#f2a93a',r:'#ff6b88'}[col(sr.st.sc)]}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`}
+ E.forEach(e=>{const mx=(X(e.a)+X(e.b))/2,my=(Y(e.a)+Y(e.b))/2;
+  if(e.lit)m+=`<circle cx="${mx}" cy="${my}" r="10" fill="#ffd166" opacity=".16"/><circle cx="${mx}" cy="${my}" r="3.2" fill="#ffd166"/>`;
+  if(e.sh>=1)m+=`<rect x="${e.d=='h'?mx-4:mx+9}" y="${e.d=='h'?my-15:my-4}" width="8" height="8" rx="2" fill="#f28c28"/>`;
+  if(e.rep)m+=`<circle cx="${mx}" cy="${my+(e.d=='h'?13:0)}" r="7" fill="#ff6b88"/><text x="${mx}" y="${my+(e.d=='h'?17:4)}" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">!</text>`;
+  m+=`<line data-e="${e.id}" x1="${X(e.a)}" y1="${Y(e.a)}" x2="${X(e.b)}" y2="${Y(e.b)}" stroke="transparent" stroke-width="22" style="cursor:pointer"/>`});
+ const s=+$('from').value,g=+$('to').value;
+ LM.forEach((n,i)=>{const a=n==s?'#fff':n==g?'#ffd166':'#6f80b8';
+  m+=`<circle cx="${X(n)}" cy="${Y(n)}" r="${n==s||n==g?9:6}" fill="${a}" stroke="#0f1830" stroke-width="2" pointer-events="none"/><text x="${X(n)}" y="${Y(n)-14}" font-size="12" text-anchor="middle" fill="#dfe5fb" pointer-events="none">${t('pl')[i]}</text>`});
+ $('map').innerHTML=m;
+ const box=$('routes');
+ if(!routes.length){box.innerHTML=`<p class="note">${t('same')}</p>`}
+ else box.innerHTML=routes.map(r=>{const c=col(r.st.sc),s=r.st;
+  return`<button class="rc" data-k="${r.k}" aria-pressed="${r.k==sel}"><span class="h"><span class="dot" style="background:var(--${c})"></span><b>${t(r.k)}</b><span class="sw" style="color:var(--${c})">${word(s.sc)}</span></span><span style="color:var(--mu)">${s.L} m · ${Math.round(s.L/80)} ${t('min')}</span><ul><li>${t('lit')}: ${s.lit}%</li><li>${t('places')}: ${s.pl}</li><li>${t('unlit')}: ${s.mx} m</li>${s.rp?`<li>${t('rep')}: ${s.rp}</li>`:''}</ul></button>`}).join('');
+ const has=se!==null;
+ $('rs').textContent=has?t('sel'):t('hint');
+ ['b1','b2','b3'].forEach(b=>$(b).disabled=!has);
+}
+function text(){$('tag').textContent=t('tag');$('lf').textContent=t('from');$('lt').textContent=t('to');$('rt').textContent=t('rt');$('demo').textContent=t('demo');
+ $('b1').textContent=t('nol');$('b2').textContent=t('iso');$('b3').textContent=t('clr');$('b4').textContent=t('rst');
+ for(const id of['from','to']){const v=$(id).value;$(id).innerHTML=LM.map((n,i)=>`<option value="${n}">${t('pl')[i]}</option>`).join('');if(v)$(id).value=v}
+ document.documentElement.lang=lang}
+$('map').addEventListener('click',ev=>{const k=ev.target.getAttribute('data-e');if(k!==null){se=+k;render()}});
+$('routes').addEventListener('click',ev=>{const b=ev.target.closest('.rc');if(b){sel=b.dataset.k;render()}});
+$('from').addEventListener('change',calc);$('to').addEventListener('change',calc);
+$('b1').onclick=()=>{E[se].lit=false;calc()};
+$('b2').onclick=()=>{E[se].rep=Math.min(2,E[se].rep+1);calc()};
+$('b3').onclick=()=>{E[se].rep=0;E[se].lit=E[se].lit0;calc()};
+$('b4').onclick=()=>{E.forEach(e=>{e.rep=0;e.lit=e.lit0});se=null;sel='safest';calc()};
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{lang=b.dataset.l;document.querySelectorAll('.lang button').forEach(x=>x.setAttribute('aria-pressed',x==b));text();render()});
+text();$('from').value=LM[0];$('to').value=LM[1];calc();
+</script>
+</body>
+</html>
